@@ -1,1 +1,1 @@
-# terraform-azure-recovery-services-replication
+# terraform-azure-site-recovery
