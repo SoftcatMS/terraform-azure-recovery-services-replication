@@ -6,40 +6,6 @@ resource "random_string" "random_string" {
   numeric = true
 }
 
-data "azurerm_virtual_machine" "primary" {
-    for_each              = var.existing_vm_primary
-    name                  = each.value.vm_name
-    resource_group_name   = each.value.vm_resource_group_name
-}
-
-data "azurerm_virtual_network" "primary" {
-    name                  = var.existing_vnet_name_primary
-    resource_group_name   = var.existing_vnet_resourcegroup_name
-}
-
-data "azurerm_subnet" "primary" {
-    name                  = var.existing_subnet_name_primary
-    resource_group_name   = var.existing_subnet_resourcegroup_name
-    virtual_network_name  = var.existing_vnet_name_primary
-}
-
-data "azurerm_network_interface" "primary" {
-    name                  = var.existing_vm_networkinteface_name
-    resource_group_name   = var.existing_vm_networkinteface_resourcegroup_name
-}
-
-data "azurerm_managed_disk" "primary_os" {
-    for_each              = var.existing_vm_primary
-    name                  = each.value.vm_osdisk_name
-    resource_group_name   = each.value.vm_osdisk_resource_group_name
-}
-
-# data "azurerm_managed_disk" "primary_datadisks" {
-#     for_each              = var.existing_vm_primary
-#     name                  = each.value.vm_datadisk_name
-#     resource_group_name   = each.value.vm_datadisk_resource_group_name
-# }
-
 resource "azurerm_resource_group" "rg_secondary" {
   name = var.resource_group_name_secondary
   location = var.location_secondary
@@ -84,8 +50,8 @@ resource "azurerm_site_recovery_replication_policy" "policy" {
   name                                                 = "replication-policy"
   resource_group_name                                  = azurerm_resource_group.rg_secondary.name
   recovery_vault_name                                  = azurerm_recovery_services_vault.asr_vault.name
-  recovery_point_retention_in_minutes                  = 24 * 60
-  application_consistent_snapshot_frequency_in_minutes = 4 * 60
+  recovery_point_retention_in_minutes                  = var.recovery_point_retention_minutes
+  application_consistent_snapshot_frequency_in_minutes = var.app_consistent_snapshot_frequency_minutes
 }
 
 resource "azurerm_site_recovery_protection_container_mapping" "container-mapping" {
@@ -104,7 +70,7 @@ resource "azurerm_site_recovery_network_mapping" "network-mapping" {
   recovery_vault_name         = azurerm_recovery_services_vault.asr_vault.name
   source_recovery_fabric_name = azurerm_site_recovery_fabric.primary.name
   target_recovery_fabric_name = azurerm_site_recovery_fabric.secondary.name
-  source_network_id           = data.azurerm_virtual_network.primary.id
+  source_network_id           = var.existing_vnet_id_primary
   target_network_id           = azurerm_virtual_network.secondary.id
 }
 
@@ -127,7 +93,7 @@ resource "azurerm_subnet" "secondary" {
   name                 = "asr-subnet"
   resource_group_name  = azurerm_resource_group.rg_secondary.name
   virtual_network_name = azurerm_virtual_network.secondary.name
-  address_prefixes     = ["192.168.2.0/24"]
+  address_prefixes     = var.asr_subnet_prefixes
 }
 
 resource "azurerm_public_ip" "secondary" {
@@ -139,12 +105,12 @@ resource "azurerm_public_ip" "secondary" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
-  for_each                                  = data.azurerm_virtual_machine.primary
-  name                                      = "${data.azurerm_virtual_machine.primary[each.key].name}-asr-replica"
+  for_each                                  = {for i, v in var.existing_vm_primary:  i => v}
+  name                                      = "${each.value.vm_name}-asr-replica"
   resource_group_name                       = azurerm_resource_group.rg_secondary.name
   recovery_vault_name                       = azurerm_recovery_services_vault.asr_vault.name
   source_recovery_fabric_name               = azurerm_site_recovery_fabric.primary.name
-  source_vm_id                              = data.azurerm_virtual_machine.primary[each.key].id
+  source_vm_id                              = each.value.vm_id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.policy.id
   source_recovery_protection_container_name = azurerm_site_recovery_protection_container.primary.name
 
@@ -153,24 +119,15 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.secondary.id
 
   managed_disk {
-    disk_id                    = data.azurerm_managed_disk.primary_os[each.key].id
+    disk_id                    = each.value.vm_osdisk_id
     staging_storage_account_id = azurerm_storage_account.primary.id
     target_resource_group_id   = azurerm_resource_group.rg_secondary.id
-    target_disk_type           = data.azurerm_managed_disk.primary_os[each.key].storage_account_type
-    target_replica_disk_type   = data.azurerm_managed_disk.primary_os[each.key].storage_account_type
+    target_disk_type           = each.value.vm_osdisk_type
+    target_replica_disk_type   = each.value.vm_osdisk_type
   }
 
-  # managed_disk {
-  #   for_each                   = data.azurerm_managed_disk.primary_datadisks
-  #   disk_id                    = data.azurerm_managed_disk.primary_datadisks[each.key].id
-  #   staging_storage_account_id = azurerm_storage_account.primary.id
-  #   target_resource_group_id   = azurerm_resource_group.rg_secondary.id
-  #   target_disk_type           = data.azurerm_managed_disk.primary_datadisks[each.key].storage_account_type
-  #   target_replica_disk_type   = data.azurerm_managed_disk.primary_datadisks[each.key].storage_account_type
-  # }
-
   network_interface {
-    source_network_interface_id   = data.azurerm_network_interface.primary.id
+    source_network_interface_id   = var.existing_vm_networkinteface_id
     target_subnet_name            = azurerm_subnet.secondary.name
     recovery_public_ip_address_id = azurerm_public_ip.secondary.id
   }

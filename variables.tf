@@ -29,52 +29,21 @@ variable "asr_vault_name" {
 }
 
 variable "existing_vm_primary" {
-  type = list(object({
-    vm_name                           = string
-    vm_resource_group_name            = string
-    vm_osdisk_name                    = string
-    vm_osdisk_resource_group_name     = string
-    # vm_datadisk_name                  = list(string)
-    # vm_datadisk_resource_group_name   = list(string)
-    }))
+  description = "Azure exisiting VM information"  
+  type = list(map(string))
   default = []
-  description = "Azure existing VM information"
 }
 
-variable "existing_vm_networkinteface_name" {
+variable "existing_vm_networkinteface_id" {
   type = string
   default = null
-  description = "Azure network interface name of interface attached to existing VM"
+  description = "Azure network interface id of interface attached to existing VM"
 }
 
-variable "existing_vm_networkinteface_resourcegroup_name" {
+variable "existing_vnet_id_primary" {
   type = string
   default = null
-  description = "Azure resource group name of where existing network interface resides"
-}
-
-variable "existing_vnet_name_primary" {
-  type = string
-  default = null
-  description = "Azure vNet name of exisitng network where primary VM resides"
-}
-
-variable "existing_vnet_resourcegroup_name" {
-  type = string
-  default = null
-  description = "Azure resource group name of where exisitng vNet resides"
-}
-
-variable "existing_subnet_name_primary" {
-  type = string
-  default = null
-  description = "Azure subnet name of exisitng subnet where primary VM resides"
-}
-
-variable "existing_subnet_resourcegroup_name" {
-  type = string
-  default = null
-  description = "Azure resource group name of where exisitng subnet resides"
+  description = "Azure vNet id of exisitng network where primary VM resides"
 }
 
 variable "recovery_point_retention_minutes" {
