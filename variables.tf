@@ -47,14 +47,14 @@ variable "existing_vnet_id_primary" {
 }
 
 variable "recovery_point_retention_minutes" {
-  type = string
-  default = "24 * 60"
+  type = number
+  default = 24 * 60
   description = "ASR policy setting. Sets the recovery point retention in minutes"
 }
 
 variable "app_consistent_snapshot_frequency_minutes" {
-  type = string
-  default = "4 * 60"
+  type = number
+  default = 4 * 60
   description = "ASR policy setting. Sets the application consistent snapshot frequency in minutes"
 }
 
