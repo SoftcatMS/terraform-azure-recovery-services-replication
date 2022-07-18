@@ -96,13 +96,14 @@ resource "azurerm_subnet" "secondary" {
   address_prefixes     = var.asr_subnet_prefixes
 }
 
-resource "azurerm_public_ip" "secondary" {
-  name                = "vm-public-ip-secondary-test2"
-  allocation_method   = "Static"
-  location            = azurerm_resource_group.rg_secondary.location
-  resource_group_name = azurerm_resource_group.rg_secondary.name
-  sku                 = "Basic"
-}
+# resource "azurerm_public_ip" "secondary" {
+#   for_each            = var.existing_vm_primary
+#   name                = each.value.vm_pubip_name
+#   allocation_method   = "Static"
+#   location            = azurerm_resource_group.rg_secondary.location
+#   resource_group_name = azurerm_resource_group.rg_secondary.name
+#   sku                 = "Basic"
+# }
 
 resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
   for_each                                  = {for i, v in var.existing_vm_primary:  i => v}
@@ -127,9 +128,9 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
   }
 
   network_interface {
-    source_network_interface_id   = var.existing_vm_networkinteface_id
+    source_network_interface_id   = each.value.vm_existing_nic_id
     target_subnet_name            = azurerm_subnet.secondary.name
-    recovery_public_ip_address_id = azurerm_public_ip.secondary.id
+    # recovery_public_ip_address_id = azurerm_public_ip.secondary[each.key].id
   }
 
   depends_on = [

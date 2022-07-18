@@ -33,6 +33,7 @@ variable "existing_vm_primary" {
   type = list(map(string))
   default = []
 }
+  
 
 variable "existing_vm_networkinteface_id" {
   type = string
