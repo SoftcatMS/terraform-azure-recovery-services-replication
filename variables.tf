@@ -30,7 +30,17 @@ variable "asr_vault_name" {
 
 variable "existing_vm_primary" {
   description = "Azure exisiting VM information"  
-  type = list(map(string))
+  type = list(object({
+    vm_name             = string
+    vm_id               = string
+    vm_osdisk_id        = string
+    vm_osdisk_type      = string
+    vm_existing_nic_id  = string
+    vm_datadisks        = optional (list(object({
+      id                = optional (string)
+      type              = optional (string)
+    })))
+  }))
   default = []
 }
   
