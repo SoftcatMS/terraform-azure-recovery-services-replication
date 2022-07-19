@@ -96,17 +96,61 @@ resource "azurerm_subnet" "secondary" {
   address_prefixes     = var.asr_subnet_prefixes
 }
 
-# resource "azurerm_public_ip" "secondary" {
-#   for_each            = var.existing_vm_primary
-#   name                = each.value.vm_pubip_name
-#   allocation_method   = "Static"
-#   location            = azurerm_resource_group.rg_secondary.location
-#   resource_group_name = azurerm_resource_group.rg_secondary.name
-#   sku                 = "Basic"
-# }
+resource "azurerm_public_ip" "secondary" {
+  for_each            = {for i, v in var.existing_vm_primary : i => v if v.vm_pubip}
+  name                = "${each.value.vm_name}-asr-pubip"
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.rg_secondary.location
+  resource_group_name = azurerm_resource_group.rg_secondary.name
+  sku                 = "Basic"
+}
 
-resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
-  for_each                                  = {for i, v in var.existing_vm_primary:  i => v}
+resource "azurerm_site_recovery_replicated_vm" "vm-replication-pubip" {
+  for_each                                  = {for i, v in var.existing_vm_primary : i => v if v.vm_pubip}
+  name                                      = "${each.value.vm_name}-asr-replica"
+  resource_group_name                       = azurerm_resource_group.rg_secondary.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.asr_vault.name
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.primary.name
+  source_vm_id                              = each.value.vm_id
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.policy.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.primary.name
+
+  target_resource_group_id                = azurerm_resource_group.rg_secondary.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.secondary.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.secondary.id
+
+  managed_disk {
+    disk_id                    = each.value.vm_osdisk_id
+    staging_storage_account_id = azurerm_storage_account.primary.id
+    target_resource_group_id   = azurerm_resource_group.rg_secondary.id
+    target_disk_type           = each.value.vm_osdisk_type
+    target_replica_disk_type   = each.value.vm_osdisk_type
+  }
+
+  dynamic "managed_disk" {
+    for_each                   = each.value.vm_datadisks !=null ? each.value.vm_datadisks : []
+    content{
+    disk_id                    = managed_disk.value["id"]
+    staging_storage_account_id = azurerm_storage_account.primary.id
+    target_resource_group_id   = azurerm_resource_group.rg_secondary.id
+    target_disk_type           = managed_disk.value["type"]
+    target_replica_disk_type   = managed_disk.value["type"]
+    }
+  }
+  
+  network_interface {
+      source_network_interface_id   = each.value.vm_existing_nic_id
+      target_subnet_name            = azurerm_subnet.secondary.name
+      recovery_public_ip_address_id = azurerm_public_ip.secondary[each.key].id
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.container-mapping,
+    azurerm_site_recovery_network_mapping.network-mapping,
+  ]
+}
+resource "azurerm_site_recovery_replicated_vm" "vm-replication-no-pubip" {
+  for_each                                  = {for i, v in var.existing_vm_primary : i => v if !v.vm_pubip}
   name                                      = "${each.value.vm_name}-asr-replica"
   resource_group_name                       = azurerm_resource_group.rg_secondary.name
   recovery_vault_name                       = azurerm_recovery_services_vault.asr_vault.name
@@ -139,10 +183,9 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
   }
 
   network_interface {
-    source_network_interface_id   = each.value.vm_existing_nic_id
-    target_subnet_name            = azurerm_subnet.secondary.name
-    # recovery_public_ip_address_id = azurerm_public_ip.secondary[each.key].id
-  }
+      source_network_interface_id   = each.value.vm_existing_nic_id
+      target_subnet_name            = azurerm_subnet.secondary.name
+    }
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.container-mapping,

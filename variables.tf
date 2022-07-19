@@ -29,17 +29,18 @@ variable "asr_vault_name" {
 }
 
 variable "existing_vm_primary" {
-  description = "Azure exisiting VM information"  
+  description = "Azure exisiting VM information. The object 'vm_pubip' should be set to true if a public IP is required for the VM and the 'vm_datadisks' allows for multiple data disks to be specified"  
   type = list(object({
     vm_name             = string
     vm_id               = string
     vm_osdisk_id        = string
     vm_osdisk_type      = string
     vm_existing_nic_id  = string
-    vm_datadisks        = optional (list(object({
-      id                = optional (string)
-      type              = optional (string)
-    })))
+    vm_pubip            = bool
+    vm_datadisks        = list(object({
+      id                = string
+      type              = string
+    }))
   }))
   default = []
 }
