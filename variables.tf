@@ -1,7 +1,7 @@
 variable "location_primary" {
   type = string
   default = null
-  description = "Azure location of where the exisiting VM resides"
+  description = "Azure location of where the exisiting VMs reside"
 }
 
 variable "location_secondary" {
@@ -29,7 +29,7 @@ variable "asr_vault_name" {
 }
 
 variable "existing_vm_primary" {
-  description = "Azure exisiting VM information. The object 'vm_pubip' should be set to true if a public IP is required for the VM and the 'vm_datadisks' allows for multiple data disks to be specified"  
+  description = "Azure exisiting VMs information. The object 'vm_pubip' should be set to true if a public IP is required for the VM and the 'vm_datadisks' allows for multiple data disks to be specified"  
   type = list(object({
     vm_name             = string
     vm_id               = string
@@ -56,6 +56,12 @@ variable "existing_vnet_id_primary" {
   type = string
   default = null
   description = "Azure vNet id of exisitng network where primary VM resides"
+}
+
+variable "existing_subnet_id" {
+  type = string
+  default = null
+  description = "Azure subnet id of the existing subnet where one the primary VM resides. Please ensure this subnet has the Microsoft.Storage service endpoint enabled"
 }
 
 variable "recovery_point_retention_minutes" {

@@ -1,5 +1,9 @@
 # terraform-azure-site-recovery
-Deploys Azure Site Recovery vault and configures replication for existing Azure VM.
+Deploys Azure Site Recovery vault and configures replication for existing Azure VMs.
+
+`Prerequisite` the subnets where the exisitng VMs reside must have the 'Microsoft.Storage' service endpoint enabled to allow access to the replication cache storage account
+
+`WARNING` adding additional disks to a VM already replicated will destory the current replication first before the entire VM is re-replicated. This can take additional time to complete.
 
 ## Usage Examples
 Review the examples folder: [examples](./examples)

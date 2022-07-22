@@ -16,6 +16,10 @@ resource "azurerm_recovery_services_vault" "asr_vault" {
   location            = var.location_secondary
   resource_group_name = azurerm_resource_group.rg_secondary.name
   sku                 = "Standard"
+
+  identity {
+    type              = "SystemAssigned"
+  }
 }
 
 resource "azurerm_site_recovery_fabric" "primary" {
@@ -75,11 +79,54 @@ resource "azurerm_site_recovery_network_mapping" "network-mapping" {
 }
 
 resource "azurerm_storage_account" "primary" {
-  name                     = "asrrecoverycache${random_string.random_string.result}"
-  location                 = var.location_primary
-  resource_group_name      = var.asr_cache_resource_group_name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                                    = "asrrecoverycache${random_string.random_string.result}"
+  location                                = var.location_primary
+  resource_group_name                     = var.asr_cache_resource_group_name
+  account_tier                            = "Standard"
+  account_replication_type                = "LRS"
+  min_tls_version                         = "TLS1_2"
+  enable_https_traffic_only               = true 
+
+  network_rules {
+    default_action              = "Deny"
+    bypass                      = ["AzureServices"]
+    virtual_network_subnet_ids  = [var.existing_subnet_id]
+  }
+
+  queue_properties {
+    logging {
+      delete                = true
+      read                  = true
+      write                 = true
+      version               = "1.0"
+      retention_policy_days = 10
+    }
+    hour_metrics {
+      enabled               = true
+      include_apis          = true
+      version               = "1.0"
+      retention_policy_days = 10  
+    }
+    minute_metrics {
+      enabled               = true
+      include_apis          = true
+      version               = "1.0"
+      retention_policy_days = 10
+    }
+  }
+ 
+}
+
+resource "azurerm_role_assignment" "asr_contributor_assignment" {
+  scope                     = azurerm_storage_account.primary.id
+  role_definition_name      = "Contributor"
+  principal_id              = azurerm_recovery_services_vault.asr_vault.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "asr_storageblobdatacontributor_assignment" {
+  scope                     = azurerm_storage_account.primary.id
+  role_definition_name      = "Storage Blob Data Contributor"
+  principal_id              = azurerm_recovery_services_vault.asr_vault.identity[0].principal_id
 }
 
 resource "azurerm_virtual_network" "secondary" {
