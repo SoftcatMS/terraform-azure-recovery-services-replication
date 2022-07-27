@@ -30,7 +30,6 @@ resource "azurerm_site_recovery_fabric" "primary" {
   resource_group_name = azurerm_resource_group.rg_secondary.name
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_primary
-  tags                = var.tags
 }
 
 resource "azurerm_site_recovery_fabric" "secondary" {
@@ -38,7 +37,6 @@ resource "azurerm_site_recovery_fabric" "secondary" {
   resource_group_name = azurerm_resource_group.rg_secondary.name
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_secondary
-  tags                = var.tags
 }
 
 resource "azurerm_site_recovery_protection_container" "primary" {
