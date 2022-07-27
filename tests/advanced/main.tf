@@ -1,5 +1,5 @@
 module "asr" {
-    source                          = "../../"
+    source                          = "github.com/SoftcatMS/azure-terraform-site-recovery"
     location_primary                = "uksouth"
     location_secondary              = "westeurope"
     asr_cache_resource_group_name   = "VM-Test"
