@@ -91,5 +91,5 @@ variable "asr_subnet_prefixes" {
 variable "tags" {
   description = "A map of the tags to use on the resources that are deployed with this module."
   type        = map(string)
-  default     = {}
+  default     = []
 }
