@@ -44,7 +44,6 @@ resource "azurerm_site_recovery_protection_container" "primary" {
   resource_group_name  = azurerm_resource_group.rg_secondary.name
   recovery_vault_name  = azurerm_recovery_services_vault.asr_vault.name
   recovery_fabric_name = azurerm_site_recovery_fabric.primary.name
-  tags                 = var.tags
 }
 
 resource "azurerm_site_recovery_protection_container" "secondary" {
@@ -52,7 +51,6 @@ resource "azurerm_site_recovery_protection_container" "secondary" {
   resource_group_name  = azurerm_resource_group.rg_secondary.name
   recovery_vault_name  = azurerm_recovery_services_vault.asr_vault.name
   recovery_fabric_name = azurerm_site_recovery_fabric.secondary.name
-  tags                 = var.tags
 }
 
 resource "azurerm_site_recovery_replication_policy" "policy" {
@@ -82,7 +80,6 @@ resource "azurerm_site_recovery_network_mapping" "network-mapping" {
   target_recovery_fabric_name = azurerm_site_recovery_fabric.secondary.name
   source_network_id           = var.existing_vnet_id_primary
   target_network_id           = azurerm_virtual_network.secondary.id
-  tags                        = var.tags
 }
 
 resource "azurerm_storage_account" "primary" {
