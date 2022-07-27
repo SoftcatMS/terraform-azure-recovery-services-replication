@@ -131,12 +131,15 @@ resource "azurerm_role_assignment" "asr_contributor_assignment" {
   scope                     = azurerm_storage_account.primary.id
   role_definition_name      = "Contributor"
   principal_id              = azurerm_recovery_services_vault.asr_vault.identity[0].principal_id
+
+  depends_on = [azurerm_storage_account.primary]
 }
 
 resource "azurerm_role_assignment" "asr_storageblobdatacontributor_assignment" {
   scope                     = azurerm_storage_account.primary.id
   role_definition_name      = "Storage Blob Data Contributor"
   principal_id              = azurerm_recovery_services_vault.asr_vault.identity[0].principal_id
+  depends_on = [azurerm_storage_account.primary]
 }
 
 resource "azurerm_virtual_network" "secondary" {
