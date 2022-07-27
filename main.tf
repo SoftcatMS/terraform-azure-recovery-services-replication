@@ -199,8 +199,6 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication-pubip" {
       recovery_public_ip_address_id = azurerm_public_ip.secondary[each.key].id
   }
 
-  tags = var.tags
-
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.container-mapping,
     azurerm_site_recovery_network_mapping.network-mapping,
@@ -243,8 +241,6 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication-no-pubip" {
       source_network_interface_id   = each.value.vm_existing_nic_id
       target_subnet_name            = azurerm_subnet.secondary.name
     }
-  
-  tags = var.tags
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.container-mapping,
