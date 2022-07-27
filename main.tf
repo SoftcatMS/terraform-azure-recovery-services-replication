@@ -9,6 +9,7 @@ resource "random_string" "random_string" {
 resource "azurerm_resource_group" "rg_secondary" {
   name = var.resource_group_name_secondary
   location = var.location_secondary
+  tags = var.tags
 }
 
 resource "azurerm_recovery_services_vault" "asr_vault" {
@@ -20,6 +21,8 @@ resource "azurerm_recovery_services_vault" "asr_vault" {
   identity {
     type              = "SystemAssigned"
   }
+
+  tags = var.tags
 }
 
 resource "azurerm_site_recovery_fabric" "primary" {
@@ -27,6 +30,7 @@ resource "azurerm_site_recovery_fabric" "primary" {
   resource_group_name = azurerm_resource_group.rg_secondary.name
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_primary
+  tags                = var.tags
 }
 
 resource "azurerm_site_recovery_fabric" "secondary" {
@@ -34,6 +38,7 @@ resource "azurerm_site_recovery_fabric" "secondary" {
   resource_group_name = azurerm_resource_group.rg_secondary.name
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_secondary
+  tags                = var.tags
 }
 
 resource "azurerm_site_recovery_protection_container" "primary" {
@@ -41,6 +46,7 @@ resource "azurerm_site_recovery_protection_container" "primary" {
   resource_group_name  = azurerm_resource_group.rg_secondary.name
   recovery_vault_name  = azurerm_recovery_services_vault.asr_vault.name
   recovery_fabric_name = azurerm_site_recovery_fabric.primary.name
+  tags                 = var.tags
 }
 
 resource "azurerm_site_recovery_protection_container" "secondary" {
@@ -48,6 +54,7 @@ resource "azurerm_site_recovery_protection_container" "secondary" {
   resource_group_name  = azurerm_resource_group.rg_secondary.name
   recovery_vault_name  = azurerm_recovery_services_vault.asr_vault.name
   recovery_fabric_name = azurerm_site_recovery_fabric.secondary.name
+  tags                 = var.tags
 }
 
 resource "azurerm_site_recovery_replication_policy" "policy" {
@@ -56,6 +63,7 @@ resource "azurerm_site_recovery_replication_policy" "policy" {
   recovery_vault_name                                  = azurerm_recovery_services_vault.asr_vault.name
   recovery_point_retention_in_minutes                  = var.recovery_point_retention_minutes
   application_consistent_snapshot_frequency_in_minutes = var.app_consistent_snapshot_frequency_minutes
+  tags                                                 = var.tags
 }
 
 resource "azurerm_site_recovery_protection_container_mapping" "container-mapping" {
@@ -66,6 +74,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "container-mapping
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.primary.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.secondary.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.policy.id
+  tags                                      = var.tags
 }
 
 resource "azurerm_site_recovery_network_mapping" "network-mapping" {
@@ -76,6 +85,7 @@ resource "azurerm_site_recovery_network_mapping" "network-mapping" {
   target_recovery_fabric_name = azurerm_site_recovery_fabric.secondary.name
   source_network_id           = var.existing_vnet_id_primary
   target_network_id           = azurerm_virtual_network.secondary.id
+  tags                        = var.tags
 }
 
 resource "azurerm_storage_account" "primary" {
@@ -86,6 +96,7 @@ resource "azurerm_storage_account" "primary" {
   account_replication_type                = "LRS"
   min_tls_version                         = "TLS1_2"
   enable_https_traffic_only               = true 
+  tags                                    = var.tags
 
   network_rules {
     default_action              = "Deny"
@@ -114,7 +125,6 @@ resource "azurerm_storage_account" "primary" {
       retention_policy_days = 10
     }
   }
- 
 }
 
 resource "azurerm_role_assignment" "asr_contributor_assignment" {
@@ -134,6 +144,7 @@ resource "azurerm_virtual_network" "secondary" {
   resource_group_name = azurerm_resource_group.rg_secondary.name
   address_space       = var.asr_vnet_address_space
   location            = azurerm_resource_group.rg_secondary.location
+  tags = var.tags
 }
 
 resource "azurerm_subnet" "secondary" {
@@ -141,6 +152,7 @@ resource "azurerm_subnet" "secondary" {
   resource_group_name  = azurerm_resource_group.rg_secondary.name
   virtual_network_name = azurerm_virtual_network.secondary.name
   address_prefixes     = var.asr_subnet_prefixes
+  tags                 = var.tags
 }
 
 resource "azurerm_public_ip" "secondary" {
@@ -150,6 +162,7 @@ resource "azurerm_public_ip" "secondary" {
   location            = azurerm_resource_group.rg_secondary.location
   resource_group_name = azurerm_resource_group.rg_secondary.name
   sku                 = "Basic"
+  tags                = var.tags
 }
 
 resource "azurerm_site_recovery_replicated_vm" "vm-replication-pubip" {
@@ -190,6 +203,8 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication-pubip" {
       target_subnet_name            = azurerm_subnet.secondary.name
       recovery_public_ip_address_id = azurerm_public_ip.secondary[each.key].id
   }
+
+  tags = var.tags
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.container-mapping,
@@ -233,6 +248,8 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication-no-pubip" {
       source_network_interface_id   = each.value.vm_existing_nic_id
       target_subnet_name            = azurerm_subnet.secondary.name
     }
+  
+  tags = var.tags
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.container-mapping,

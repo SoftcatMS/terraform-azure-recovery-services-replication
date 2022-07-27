@@ -13,7 +13,7 @@ variable "location_secondary" {
 variable "asr_cache_resource_group_name" {
   type = string
   default = null
-  description = "Azure resource group name of where the storgae account for replication cache should be created"
+  description = "Azure resource group name of where the storage account for replication cache should be created"
 }
 
 variable "resource_group_name_secondary" {
@@ -86,4 +86,10 @@ variable "asr_subnet_prefixes" {
   description = "The address prefix to use for the subnets in the ASR replicated secondary location"
   type        = list(string)
   default     = ["10.0.1.0/24"]
+}
+
+variable "tags" {
+  description = "A map of the tags to use on the resources that are deployed with this module."
+  type        = map(string)
+  default     = {}
 }
