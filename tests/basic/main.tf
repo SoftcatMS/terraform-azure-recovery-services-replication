@@ -25,7 +25,7 @@ module "vnet" {
 }
 
 module "asr" {
-    source                          = "github.com/SoftcatMS/terraform-azure-site-recovery?ref=data-disk-multiple-vms"
+    source                          = "github.com/SoftcatMS/terraform-azure-site-recovery"
     location_primary                = "uksouth"
     location_secondary              = "westeurope"
     asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-basic.name
