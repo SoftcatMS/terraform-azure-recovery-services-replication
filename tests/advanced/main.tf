@@ -108,11 +108,11 @@ module "asr" {
         vm_datadisks                    = [
           {
             id                          = module.vm.data_disk_ids[0]
-            type                        = "StandardSSD_LRS"
+            type                        = module.vm.data_disk_types[0]
           },
           {
             id                          = module.vm.data_disk_ids[1]
-            type                        = "Standard_LRS"
+            type                        = module.vm.data_disk_types[1]
           }
         ]
         }
