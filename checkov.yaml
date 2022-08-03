@@ -1,0 +1,18 @@
+skip-check: 
+  - CKV_AZURE_43
+  - CKV2_AZURE_18
+  - CKV2_AZURE_1
+  - CKV2_AZURE_12
+  - CKV2_AZURE_10
+  - CKV_AZURE_119
+  - CKV_AZURE_1
+  - CKV_AZURE_50
+
+  # CKV_AZURE_50 https://docs.bridgecrew.io/docs/bc_azr_general_14
+  # CKV_AZURE_43 https://docs.bridgecrew.io/docs/ensure-storage-accounts-adhere-to-the-naming-rules
+  # CKV2_AZURE_18 https://docs.bridgecrew.io/docs/ensure-that-storage-accounts-use-customer-managed-key-for-encryption
+  # CKV2_AZURE_1 https://docs.bridgecrew.io/docs/ensure-storage-for-critical-data-are-encrypted-with-customer-managed-key
+  # CKV2_AZURE_12 https://docs.bridgecrew.io/docs/ensure-that-virtual-machines-are-backed-up-using-azure-backup
+  # CKV2_AZURE_10 https://docs.bridgecrew.io/docs/ensure-that-microsoft-antimalware-is-configured-to-automatically-updates-for-virtual-machines
+  # CKV_AZURE_119 https://docs.bridgecrew.io/docs/ensure-that-network-interfaces-dont-use-public-ips
+  # CKV_AZURE_1 https://docs.bridgecrew.io/docs/bc_azr_networking_1

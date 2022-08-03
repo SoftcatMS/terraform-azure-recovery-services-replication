@@ -1,15 +1,15 @@
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_resource_group" "rg-vm-test-advanced" {
-  name     = "rg-test-asr-advanced-resources"
+resource "azurerm_resource_group" "rg-vm-example-advanced" {
+  name     = "rg-example-asr-advanced-resources"
   location = "UK South"
 }
 
 module "vnet" {
 
   source              = "github.com/SoftcatMS/azure-terraform-vnet"
-  vnet_name           = "vnet-asr-test-advanced"
-  resource_group_name = azurerm_resource_group.rg-vm-test-advanced.name
+  vnet_name           = "vnet-asr-example-advanced"
+  resource_group_name = azurerm_resource_group.rg-vm-example-advanced.name
   address_space       = ["10.1.0.0/16"]
   subnet_prefixes     = ["10.1.1.0/24"]
   subnet_names        = ["subnet1"]
@@ -19,23 +19,23 @@ module "vnet" {
   }
 
   tags = {
-    environment = "test"
+    environment = "example"
     engineer    = "ci/cd"
   }
 
-  depends_on = [azurerm_resource_group.rg-vm-test-advanced]
+  depends_on = [azurerm_resource_group.rg-vm-example-advanced]
 }
 
 module "vm" {
 
   source                        = "github.com/SoftcatMS/azure-terraform-vm/modules/windows-vm"
-  name                          = "wintest-vm-adv"
-  resource_group_name           = azurerm_resource_group.rg-vm-test-advanced.name
-  location                      = azurerm_resource_group.rg-vm-test-advanced.location
+  name                          = "winexample-vm-adv"
+  resource_group_name           = azurerm_resource_group.rg-vm-example-advanced.name
+  location                      = azurerm_resource_group.rg-vm-example-advanced.location
   virtual_machine_size          = "Standard_B2s"
   admin_password                = "ComplxP@ssw0rd!" // Password should not be provided in plain text. Use secrets
   enable_public_ip              = true
-  public_ip_dns                 = "wintestadvancedvmip" // change to a unique name per datacenter region
+  public_ip_dns                 = "winexampleadvancedvmip" // change to a unique name per datacenter region
   vnet_subnet_id                = module.vnet.vnet_subnets[0]
   enable_accelerated_networking = false
 
@@ -85,23 +85,23 @@ module "vm" {
     },
   ]
 
-  depends_on = [azurerm_resource_group.rg-vm-test-advanced]
+  depends_on = [azurerm_resource_group.rg-vm-example-advanced]
 }
 
 module "asr" {
     source                          = "github.com/SoftcatMS/terraform-azure-site-recovery?ref=data-disk-multiple-vms"
     location_primary                = "uksouth"
     location_secondary              = "westeurope"
-    asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-advanced.name
-    resource_group_name_secondary   = "ukw-asr-test-advanced"
-    asr_vault_name                  = "ukw-asr-vault-test-advanced"
+    asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-example-advanced.name
+    resource_group_name_secondary   = "ukw-asr-example-advanced"
+    asr_vault_name                  = "ukw-asr-vault-example-advanced"
     existing_vnet_id_primary        = module.vnet.vnet_id
     existing_subnet_id              = module.vnet.vnet_subnets[0]
     existing_vm_primary = [
         {
-        vm_name                         = "wintest-vm-adv"
+        vm_name                         = "winexample-vm-adv"
         vm_id                           = module.vm.virtual_machine_id
-        vm_osdisk_id                    = "${data.azurerm_subscription.current.id}/resourceGroups/${azurerm_resource_group.rg-vm-test-advanced.name}/providers/Microsoft.Compute/disks/${module.vm.os_disk_name}"
+        vm_osdisk_id                    = "${data.azurerm_subscription.current.id}/resourceGroups/${azurerm_resource_group.rg-vm-example-advanced.name}/providers/Microsoft.Compute/disks/${module.vm.os_disk_name}"
         vm_osdisk_type                  = module.vm.os_disk_type
         vm_existing_nic_id              = module.vm.network_interface_id
         vm_pubip                        = false

@@ -1,0 +1,213 @@
+trigger: none
+
+pr:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+
+  - stage: StaticCodeAnalysis
+    displayName: Static Code Analysis
+
+    jobs:
+    - job: StaticCodeAnalysis
+      displayName: Static Code Analysis
+      pool:
+        vmImage: ubuntu-20.04
+
+      steps:
+      - bash: |
+          echo "Checkov static code analysis"
+          docker run -t -v $(System.DefaultWorkingDirectory):/tf bridgecrew/checkov --directory /tf --config-file /tf/checkov.yaml 
+        displayName: Checkov Static Code Analysis
+        name: "Static_Code_Analysis"
+        condition: always()
+        continueOnError: true 
+
+  - stage: TerraformBuild
+    displayName: Terraform Build
+
+    jobs:
+    - job: TerraformBuild
+      displayName: Terraform Build
+      pool:
+        vmImage: ubuntu-20.04
+
+      steps:
+
+      - task: TerraformInstaller@0
+        inputs:
+          terraformVersion: 'latest'
+
+      - task: TerraformTaskV2@2
+        displayName: Init Basic
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: 'tests/basic/'
+          backendServiceArm: 'sandbox-terraform-testing-spn'
+          backendAzureRmResourceGroupName: 'rg-terraform-modules-state'
+          backendAzureRmStorageAccountName: 'softcatmodulestate'
+          backendAzureRmContainerName: 'tf-modules-azure-site-recovery-basic'
+          backendAzureRmKey: 'terraform.tfstate'
+
+      - task: TerraformTaskV2@2
+        displayName: Validate Basic
+        inputs:
+          provider: 'azurerm'
+          command: 'validate'
+          workingDirectory: 'tests/basic/'
+
+      - task: TerraformTaskV2@2
+        displayName: Plan Basic
+        inputs:
+          provider: 'azurerm'
+          command: 'plan'
+          workingDirectory: 'tests/basic/'
+          environmentServiceNameAzureRM: 'sandbox-terraform-testing-spn'
+
+      - task: TerraformTaskV2@2
+        displayName: Apply Basic
+        inputs:
+          provider: 'azurerm'
+          command: 'apply'
+          workingDirectory: 'tests/basic/'
+          environmentServiceNameAzureRM: 'sandbox-terraform-testing-spn'
+
+      - task: TerraformTaskV2@2
+        displayName: Init Advanced
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: 'tests/advanced/'
+          backendServiceArm: 'sandbox-terraform-testing-spn'
+          backendAzureRmResourceGroupName: 'rg-terraform-modules-state'
+          backendAzureRmStorageAccountName: 'softcatmodulestate'
+          backendAzureRmContainerName: 'tf-modules-azure-site-recovery-advanced'
+          backendAzureRmKey: 'terraform.tfstate'
+
+      - task: TerraformTaskV2@2
+        displayName: Validate Advanced
+        inputs:
+          provider: 'azurerm'
+          command: 'validate'
+          workingDirectory: 'tests/advanced/'
+
+      - task: TerraformTaskV2@2
+        displayName: Plan Advanced
+        inputs:
+          provider: 'azurerm'
+          command: 'plan'
+          workingDirectory: 'tests/advanced/'
+          environmentServiceNameAzureRM: 'sandbox-terraform-testing-spn'
+
+      - task: TerraformTaskV2@2
+        displayName: Apply Advanced
+        inputs:
+          provider: 'azurerm'
+          command: 'apply'
+          workingDirectory: 'tests/advanced/'
+          environmentServiceNameAzureRM: 'sandbox-terraform-testing-spn'
+
+  - stage: QC
+    displayName: QC
+
+    jobs:
+    - job: QC
+      displayName: QC
+      pool:
+        vmImage: ubuntu-20.04
+
+      steps:
+
+      - task: AzureKeyVault@2
+        displayName: Get credentials from Key Vault
+        inputs:
+          azureSubscription: 'sandbox-terraform-testing-spn'
+          KeyVaultName: 'kvpipelinetestingsecrets'
+          SecretsFilter: '*'
+          RunAsPreJob: true
+
+      - task: chef-software.chef-azdo.install.component@3
+        displayName: Install Inspec
+        inputs:
+          component: 'inspec'
+          sudo: true
+
+      - bash: |
+            inspec exec tests/basic/azure-inspec-tests  -t azure:// --chef-license=accept
+        env:
+            AZURE_CLIENT_ID: $(CLIENTID)
+            AZURE_CLIENT_SECRET: $(CLIENTSECRET)
+            AZURE_SUBSCRIPTION_ID: $(SUBSCRIPTIONID)
+            AZURE_TENANT_ID: $(TENANTID)
+        displayName: Run Basic QC
+        continueOnError: true
+
+      - bash: |
+            inspec exec tests/advanced/azure-inspec-tests  -t azure:// --chef-license=accept
+        env:
+            AZURE_CLIENT_ID: $(CLIENTID)
+            AZURE_CLIENT_SECRET: $(CLIENTSECRET)
+            AZURE_SUBSCRIPTION_ID: $(SUBSCRIPTIONID)
+            AZURE_TENANT_ID: $(TENANTID)
+        displayName: Run Advanced QC
+        continueOnError: true
+
+
+
+  - stage: TerraformDestroy
+    displayName: Terraform Destroy
+
+    jobs:
+    - job: TerraformDestroy
+      displayName: Terraform Destroy
+      pool:
+        vmImage: ubuntu-20.04
+
+      steps:
+      - task: TerraformInstaller@0
+        inputs:
+          terraformVersion: 'latest'
+
+      - task: TerraformTaskV2@2
+        displayName: Init Basic
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: 'tests/basic/'
+          backendServiceArm: 'sandbox-terraform-testing-spn'
+          backendAzureRmResourceGroupName: 'rg-terraform-modules-state'
+          backendAzureRmStorageAccountName: 'softcatmodulestate'
+          backendAzureRmContainerName: 'tf-modules-azure-site-recovery-basic'
+          backendAzureRmKey: 'terraform.tfstate'
+
+      - task: TerraformTaskV2@2
+        displayName: Destroy Basic
+        inputs:
+          provider: 'azurerm'
+          command: 'destroy'
+          workingDirectory: 'tests/basic/'
+          environmentServiceNameAzureRM: 'sandbox-terraform-testing-spn'
+
+      - task: TerraformTaskV2@2
+        displayName: Init Advanced
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: 'tests/advanced/'
+          backendServiceArm: 'sandbox-terraform-testing-spn'
+          backendAzureRmResourceGroupName: 'rg-terraform-modules-state'
+          backendAzureRmStorageAccountName: 'softcatmodulestate'
+          backendAzureRmContainerName: 'tf-modules-azure-site-recovery-advanced'
+          backendAzureRmKey: 'terraform.tfstate'
+
+      - task: TerraformTaskV2@2
+        displayName: Destroy Advanced
+        inputs:
+          provider: 'azurerm'
+          command: 'destroy'
+          workingDirectory: 'tests/advanced/'
+          environmentServiceNameAzureRM: 'sandbox-terraform-testing-spn'
