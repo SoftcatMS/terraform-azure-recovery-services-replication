@@ -1,0 +1,41 @@
+name: Bump and Release
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0' # 0 indicates all history for all branches and tags (https://github.com/actions/checkout)
+
+    # Updating module version using semantic versioning
+    # To deploy v1.0.0 commit requires message to include #major
+    # To bump to a minor version (default) v1.1.0 use #minor
+    # To bump Patch version v1.1.1 use #patch in commit message
+    - name: Bump version and push tag
+      id: bump_version
+      uses: anothrNick/github-tag-action@ce4b5ffa38e072fa7a901e417253c438fcc2ccce # https://github.com/anothrNick/github-tag-action
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true # Append version number with 'v'
+
+    # Return changelog between two git references
+    - name: Generate changelog
+      id: changelog
+      uses: metcalfc/changelog-generator@e5306b306fa2e34f05258789e0e5c526c1bd4352 # https://github.com/metcalfc/changelog-generator
+      with:
+        myToken: ${{ secrets.GITHUB_TOKEN }}
+
+
+    - name: "Create GitHub Release"
+      uses: actions/create-release@v1 # https://github.com/actions/create-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{steps.bump_version.outputs.tag}}
+        body: ${{steps.changelog.outputs.changelog}} # Adds Changelog differences between latest git references to release
+
+
