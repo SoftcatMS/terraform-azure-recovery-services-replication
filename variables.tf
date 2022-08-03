@@ -1,7 +1,7 @@
 variable "location_primary" {
   type = string
   default = null
-  description = "Azure location of where the exisiting VM resides"
+  description = "Azure location of where the exisiting VMs reside"
 }
 
 variable "location_secondary" {
@@ -13,7 +13,7 @@ variable "location_secondary" {
 variable "asr_cache_resource_group_name" {
   type = string
   default = null
-  description = "Azure resource group name of where the storgae account for replication cache should be created"
+  description = "Azure resource group name of where the storage account for replication cache should be created"
 }
 
 variable "resource_group_name_secondary" {
@@ -29,8 +29,19 @@ variable "asr_vault_name" {
 }
 
 variable "existing_vm_primary" {
-  description = "Azure exisiting VM information"  
-  type = list(map(string))
+  description = "Azure exisiting VMs information. The object 'vm_pubip' should be set to true if a public IP is required for the VM and the 'vm_datadisks' allows for multiple data disks to be specified"  
+  type = list(object({
+    vm_name             = string
+    vm_id               = string
+    vm_osdisk_id        = string
+    vm_osdisk_type      = string
+    vm_existing_nic_id  = string
+    vm_pubip            = bool
+    vm_datadisks        = list(object({
+      id                = string
+      type              = string
+    }))
+  }))
   default = []
 }
   
@@ -45,6 +56,12 @@ variable "existing_vnet_id_primary" {
   type = string
   default = null
   description = "Azure vNet id of exisitng network where primary VM resides"
+}
+
+variable "existing_subnet_id" {
+  type = string
+  default = null
+  description = "Azure subnet id of the existing subnet where one the primary VM resides. Please ensure this subnet has the Microsoft.Storage service endpoint enabled"
 }
 
 variable "recovery_point_retention_minutes" {
@@ -69,4 +86,12 @@ variable "asr_subnet_prefixes" {
   description = "The address prefix to use for the subnets in the ASR replicated secondary location"
   type        = list(string)
   default     = ["10.0.1.0/24"]
+}
+
+variable "tags" {
+  description = "A map of the tags to use on the resources that are deployed with this module."
+  type        = map(string)
+  default     = {
+    ENV       = "test"
+  }
 }
