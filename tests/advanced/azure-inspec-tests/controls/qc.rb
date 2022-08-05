@@ -4,7 +4,7 @@
 
 resource_group1 = 'rg-test-asr-advanced-resources'
 
-describe azurerm_recovery_services_vault(resource_group: resource_group1, name: 'ukw-asr-vault-test-advanced') do
+describe azure_generic_resource(resource_group: resource_group1, name: 'ukw-asr-vault-test-advanced') do
   it { should exist }
 end
 
