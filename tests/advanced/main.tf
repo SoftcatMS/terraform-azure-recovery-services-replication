@@ -118,5 +118,7 @@ module "asr" {
           }
         ]
         }
-    ]  
+    ]
+    
+    depends_on = [module.vm]  
 }
