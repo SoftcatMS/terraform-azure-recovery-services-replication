@@ -26,14 +26,14 @@ resource "azurerm_recovery_services_vault" "asr_vault" {
 }
 
 resource "azurerm_site_recovery_fabric" "primary" {
-  name                = "primary-fabric"
+  name                = var.asr_fabric_primary_name
   resource_group_name = azurerm_resource_group.rg_secondary.name
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_primary
 }
 
 resource "azurerm_site_recovery_fabric" "secondary" {
-  name                = "secondary-fabric"
+  name                = var.asr_fabric_secondary_name
   resource_group_name = azurerm_resource_group.rg_secondary.name
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_secondary

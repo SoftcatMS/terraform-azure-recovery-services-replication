@@ -31,6 +31,8 @@ module "asr" {
     asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-basic.name
     resource_group_name_secondary   = "ukw-asr-test-basic"
     asr_vault_name                  = "ukw-asr-vault-test-basic"
+    asr_fabric_primary_name         = "primary-fabric-basic"
+    asr_fabric_secondary_name       = "secondary-fabric-basic"
     existing_vnet_id_primary        = module.vnet.vnet_id
     existing_subnet_id              = module.vnet.vnet_subnets[0]
     

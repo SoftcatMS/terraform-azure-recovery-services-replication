@@ -95,6 +95,8 @@ module "asr" {
     asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-advanced.name
     resource_group_name_secondary   = "ukw-asr-test-advanced"
     asr_vault_name                  = "ukw-asr-vault-test-advanced"
+    asr_fabric_primary_name         = "primary-fabric-advanced"
+    asr_fabric_secondary_name       = "secondary-fabric-advanced"
     existing_vnet_id_primary        = module.vnet.vnet_id
     existing_subnet_id              = module.vnet.vnet_subnets[0]
     existing_vm_primary = [
