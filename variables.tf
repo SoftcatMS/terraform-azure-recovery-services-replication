@@ -95,3 +95,15 @@ variable "tags" {
     ENV       = "test"
   }
 }
+
+variable "asr_fabric_primary_name" {
+  description = "A name to use for the asr fabric primary connection"
+  type        = string
+  default     = "primary-fabric"
+}
+
+variable "asr_fabric_secondary_name" {
+  description = "A name to use for the asr fabric primary connection"
+  type        = string
+  default     = "secondary-fabric"
+}
