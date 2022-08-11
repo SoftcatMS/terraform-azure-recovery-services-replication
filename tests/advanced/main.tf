@@ -89,11 +89,8 @@ module "vm" {
 }
 
 module "asr" {
-<<<<<<< HEAD
+
     source                          = "github.com/SoftcatMS/terraform-azure-site-recovery"
-=======
-    source                          = "github.com/SoftcatMS/terraform-azure-site-recovery?ref=MAB-322-Adjust-data-disk-types-to-use-module-outputs"
->>>>>>> 1dab3ecd5e240c46d2442e509087cc27afff5ce4
     location_primary                = "uksouth"
     location_secondary              = "westeurope"
     asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-advanced.name
