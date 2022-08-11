@@ -25,12 +25,18 @@ module "vnet" {
 }
 
 module "asr" {
+<<<<<<< HEAD
     source                          = "github.com/SoftcatMS/terraform-azure-site-recovery"
+=======
+    source                          = "github.com/SoftcatMS/terraform-azure-site-recovery?ref=MAB-322-Adjust-data-disk-types-to-use-module-outputs"
+>>>>>>> 1dab3ecd5e240c46d2442e509087cc27afff5ce4
     location_primary                = "uksouth"
     location_secondary              = "westeurope"
     asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-basic.name
     resource_group_name_secondary   = "ukw-asr-test-basic"
     asr_vault_name                  = "ukw-asr-vault-test-basic"
+    asr_fabric_primary_name         = "primary-fabric-basic"
+    asr_fabric_secondary_name       = "secondary-fabric-basic"
     existing_vnet_id_primary        = module.vnet.vnet_id
     existing_subnet_id              = module.vnet.vnet_subnets[0]
     

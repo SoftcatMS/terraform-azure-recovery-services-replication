@@ -89,12 +89,18 @@ module "vm" {
 }
 
 module "asr" {
+<<<<<<< HEAD
     source                          = "github.com/SoftcatMS/terraform-azure-site-recovery"
+=======
+    source                          = "github.com/SoftcatMS/terraform-azure-site-recovery?ref=MAB-322-Adjust-data-disk-types-to-use-module-outputs"
+>>>>>>> 1dab3ecd5e240c46d2442e509087cc27afff5ce4
     location_primary                = "uksouth"
     location_secondary              = "westeurope"
     asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-advanced.name
     resource_group_name_secondary   = "ukw-asr-test-advanced"
     asr_vault_name                  = "ukw-asr-vault-test-advanced"
+    asr_fabric_primary_name         = "primary-fabric-advanced"
+    asr_fabric_secondary_name       = "secondary-fabric-advanced"
     existing_vnet_id_primary        = module.vnet.vnet_id
     existing_subnet_id              = module.vnet.vnet_subnets[0]
     existing_vm_primary = [
@@ -108,13 +114,15 @@ module "asr" {
         vm_datadisks                    = [
           {
             id                          = module.vm.data_disk_ids[0]
-            type                        = "StandardSSD_LRS"
+            type                        = module.vm.data_disk_types[0]
           },
           {
             id                          = module.vm.data_disk_ids[1]
-            type                        = "Standard_LRS"
+            type                        = module.vm.data_disk_types[1]
           }
         ]
         }
-    ]  
+    ]
+    
+    depends_on = [module.vm]  
 }
