@@ -41,5 +41,8 @@ module "asr" {
       engineer    = "ci/cd"
   }
 
-    depends_on = [azurerm_resource_group.rg-vm-test-basic]
+    depends_on = [
+      azurerm_resource_group.rg-vm-test-basic,
+      module.vnet
+      ]
 }

@@ -121,5 +121,9 @@ module "asr" {
         }
     ]
     
-    depends_on = [module.vm]  
+    depends_on = [
+      azurerm_resource_group.rg-vm-test-advanced,
+      module.vnet,
+      module.vm
+      ]  
 }
