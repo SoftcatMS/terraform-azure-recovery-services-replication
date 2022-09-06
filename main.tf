@@ -31,9 +31,6 @@ resource "azurerm_site_recovery_fabric" "primary" {
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_primary
 
-  depends_on = [
-    azurerm_recovery_services_vault.asr_vault
-  ]
 }
 
 resource "azurerm_site_recovery_fabric" "secondary" {
@@ -42,9 +39,6 @@ resource "azurerm_site_recovery_fabric" "secondary" {
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_secondary
 
-  depends_on = [
-    azurerm_recovery_services_vault.asr_vault
-  ]
 }
 
 resource "azurerm_site_recovery_protection_container" "primary" {
