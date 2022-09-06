@@ -39,6 +39,10 @@ resource "azurerm_site_recovery_fabric" "secondary" {
   recovery_vault_name = azurerm_recovery_services_vault.asr_vault.name
   location            = var.location_secondary
 
+  depends_on = [
+    azurerm_site_recovery_fabric.primary
+  ]
+
 }
 
 resource "azurerm_site_recovery_protection_container" "primary" {
@@ -61,6 +65,10 @@ resource "azurerm_site_recovery_replication_policy" "policy" {
   recovery_vault_name                                  = azurerm_recovery_services_vault.asr_vault.name
   recovery_point_retention_in_minutes                  = var.recovery_point_retention_minutes
   application_consistent_snapshot_frequency_in_minutes = var.app_consistent_snapshot_frequency_minutes
+
+  depends_on = [
+    azurerm_recovery_services_vault.asr_vault
+  ]
 }
 
 resource "azurerm_site_recovery_protection_container_mapping" "container-mapping" {
