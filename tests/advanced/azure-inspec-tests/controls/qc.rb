@@ -5,7 +5,7 @@
 resource_group1 = 'ukw-asr-test-advanced'
 resource_group2 = 'rg-test-asr-advanced-resources'
 
-describe azure_generic_resource(resource_group: resource_group1, name: 'ukw-asr-vault-test-advanced') do
+describe azure_generic_resource(resource_group: resource_group1, name: 'rg-ukw-asr-vault-test-advanced') do
   it { should exist }
 end
 
