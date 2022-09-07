@@ -29,7 +29,7 @@ module "asr" {
     location_primary                = "uksouth"
     location_secondary              = "westeurope"
     asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-basic.name
-    resource_group_name_secondary   = "ukw-asr-test-basic"
+    resource_group_name_secondary   = "rg-ukw-asr-test-basic"
     asr_vault_name                  = "ukw-asr-vault-test-basic"
     asr_fabric_primary_name         = "primary-fabric-basic"
     asr_fabric_secondary_name       = "secondary-fabric-basic"
@@ -41,5 +41,8 @@ module "asr" {
       engineer    = "ci/cd"
   }
 
-    depends_on = [azurerm_resource_group.rg-vm-test-basic]
+    depends_on = [
+      azurerm_resource_group.rg-vm-test-basic,
+      module.vnet
+      ]
 }
