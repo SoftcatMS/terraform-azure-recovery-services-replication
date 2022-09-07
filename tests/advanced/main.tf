@@ -94,7 +94,7 @@ module "asr" {
     location_primary                = "uksouth"
     location_secondary              = "westeurope"
     asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-advanced.name
-    resource_group_name_secondary   = "ukw-asr-test-advanced"
+    resource_group_name_secondary   = "rg-ukw-asr-test-advanced"
     asr_vault_name                  = "ukw-asr-vault-test-advanced"
     asr_fabric_primary_name         = "primary-fabric-advanced"
     asr_fabric_secondary_name       = "secondary-fabric-advanced"
