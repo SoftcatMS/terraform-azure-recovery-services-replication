@@ -2,10 +2,7 @@
 
 # Test values
 
-resource_group1 = 'rg-ukw-asr-test-advanced'
-resource_group2 = 'rg-test-asr-advanced-resources'
-
-describe azure_generic_resource(resource_group: resource_group1, name: 'rg-ukw-asr-test-advanced') do
+describe azure_resource_group(name: 'rg-ukw-asr-test-advanced') do
   it { should exist }
 end
 
