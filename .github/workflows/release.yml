@@ -4,38 +4,76 @@ on:
     branches:
       - main
 jobs:
-  build:
+  release:
+    name: release
     runs-on: ubuntu-latest
+    outputs:
+      EXISTING_TAG: ${{ steps.check_tag.outputs.EXISTING_TAG }}
+    
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: '0' # 0 indicates all history for all branches and tags (https://github.com/actions/checkout)
-
-    # Updating module version using semantic versioning
+        
     # To deploy v1.0.0 commit requires message to include #major
     # To bump to a minor version (default) v1.1.0 use #minor
     # To bump Patch version v1.1.1 use #patch in commit message
-    - name: Bump version and push tag
-      id: bump_version
-      uses: anothrNick/github-tag-action@ce4b5ffa38e072fa7a901e417253c438fcc2ccce # https://github.com/anothrNick/github-tag-action
+
+    # If missing initial Tag and release this will fail on first run
+    # This will add if tag does not exists
+    - name: Check for existing tag
+      id: check_tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "EXISTING_TAG=$(git describe --tags)" >> $GITHUB_OUTPUT
+
+    # Updating module version using semantic versioning
+    - name: Initial tag and rlease
+      if: ${{ steps.check_tag.outputs.EXISTING_TAG == '' }}
+      id: initial_release
+      uses: anothrNick/github-tag-action@ce4b5ffa38e072fa7a901e417253c438fcc2ccce # v1.36.0 https://github.com/anothrNick/github-tag-action
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: true # Append version number with 'v'
+        DEFAULT_BUMP: major
+        
+    # Create initial release
+    - name: Create GitHub Release
+      if: ${{ steps.check_tag.outputs.EXISTING_TAG == '' }}
+      uses: actions/create-release@v1 # https://github.com/actions/create-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{steps.initial_release.outputs.tag}}
+        body: "Initial Release"
+
+
+    # Bump and release 
+    - name: Bump version and push tag
+      if: ${{ steps.check_tag.outputs.EXISTING_TAG }}
+      id: bump_version
+      uses: anothrNick/github-tag-action@ce4b5ffa38e072fa7a901e417253c438fcc2ccce # v1.36.0 https://github.com/anothrNick/github-tag-action
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true # Append version number with 'v' 
+        
 
     # Return changelog between two git references
     - name: Generate changelog
+      if: ${{ steps.check_tag.outputs.EXISTING_TAG }}
       id: changelog
-      uses: metcalfc/changelog-generator@e5306b306fa2e34f05258789e0e5c526c1bd4352 # https://github.com/metcalfc/changelog-generator
+      uses: metcalfc/changelog-generator@v3.0.0 # v3.0.0 https://github.com/metcalfc/changelog-generator
       with:
         myToken: ${{ secrets.GITHUB_TOKEN }}
 
 
-    - name: "Create GitHub Release"
+    # Create the release and changelog
+    - name: Create GitHub Release
+      if: ${{ steps.check_tag.outputs.EXISTING_TAG }}
       uses: actions/create-release@v1 # https://github.com/actions/create-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{steps.bump_version.outputs.tag}}
         body: ${{steps.changelog.outputs.changelog}} # Adds Changelog differences between latest git references to release
-
-
