@@ -3,13 +3,17 @@ on:
   push:
     branches:
       - main
+
+permissions: read-all
+
 jobs:
   release:
     name: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  
     outputs:
       EXISTING_TAG: ${{ steps.check_tag.outputs.EXISTING_TAG }}
-    
+    permissions: write-all
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -29,7 +33,7 @@ jobs:
         echo "EXISTING_TAG=$(git describe --tags)" >> $GITHUB_OUTPUT
 
     # Updating module version using semantic versioning
-    - name: Initial tag and rlease
+    - name: Initial tag and release
       if: ${{ steps.check_tag.outputs.EXISTING_TAG == '' }}
       id: initial_release
       uses: anothrNick/github-tag-action@ce4b5ffa38e072fa7a901e417253c438fcc2ccce # v1.36.0 https://github.com/anothrNick/github-tag-action
