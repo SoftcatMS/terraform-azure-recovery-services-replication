@@ -90,40 +90,41 @@ module "vm" {
 
 module "asr" {
 
-    source                          = "github.com/SoftcatMS/terraform-azure-site-recovery"
-    location_primary                = "uksouth"
-    location_secondary              = "westeurope"
-    asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-advanced.name
-    resource_group_name_secondary   = "rg-ukw-asr-test-advanced"
-    asr_vault_name                  = "ukw-asr-vault-test-advanced"
-    asr_fabric_primary_name         = "primary-fabric-advanced"
-    asr_fabric_secondary_name       = "secondary-fabric-advanced"
-    existing_vnet_id_primary        = module.vnet.vnet_id
-    existing_subnet_id              = module.vnet.vnet_subnets[0]
-    existing_vm_primary = [
+  source                        = "../../"
+  location_primary              = "uksouth"
+  location_secondary            = "westeurope"
+  asr_cache_resource_group_name = azurerm_resource_group.rg-vm-test-advanced.name
+  resource_group_name_secondary = "rg-ukw-asr-test-advanced"
+  asr_vault_name                = "ukw-asr-vault-test-advanced"
+  asr_fabric_primary_name       = "primary-fabric-advanced"
+  asr_fabric_secondary_name     = "secondary-fabric-advanced"
+  public_network_access_enabled = false
+  existing_vnet_id_primary      = module.vnet.vnet_id
+  existing_subnet_id            = module.vnet.vnet_subnets[0]
+  existing_vm_primary = [
+    {
+      vm_name            = "wintest-vm-adv"
+      vm_id              = module.vm.virtual_machine_id
+      vm_osdisk_id       = "${data.azurerm_subscription.current.id}/resourceGroups/${azurerm_resource_group.rg-vm-test-advanced.name}/providers/Microsoft.Compute/disks/${module.vm.os_disk_name}"
+      vm_osdisk_type     = module.vm.os_disk_type
+      vm_existing_nic_id = module.vm.network_interface_id
+      vm_pubip           = false
+      vm_datadisks = [
         {
-        vm_name                         = "wintest-vm-adv"
-        vm_id                           = module.vm.virtual_machine_id
-        vm_osdisk_id                    = "${data.azurerm_subscription.current.id}/resourceGroups/${azurerm_resource_group.rg-vm-test-advanced.name}/providers/Microsoft.Compute/disks/${module.vm.os_disk_name}"
-        vm_osdisk_type                  = module.vm.os_disk_type
-        vm_existing_nic_id              = module.vm.network_interface_id
-        vm_pubip                        = false
-        vm_datadisks                    = [
-          {
-            id                          = module.vm.data_disk_ids[0]
-            type                        = module.vm.data_disk_types[0]
-          },
-          {
-            id                          = module.vm.data_disk_ids[1]
-            type                        = module.vm.data_disk_types[1]
-          }
-        ]
+          id   = module.vm.data_disk_ids[0]
+          type = module.vm.data_disk_types[0]
+        },
+        {
+          id   = module.vm.data_disk_ids[1]
+          type = module.vm.data_disk_types[1]
         }
-    ]
-    
-    depends_on = [
-      azurerm_resource_group.rg-vm-test-advanced,
-      module.vnet,
-      module.vm
-      ]  
+      ]
+    }
+  ]
+
+  depends_on = [
+    azurerm_resource_group.rg-vm-test-advanced,
+    module.vnet,
+    module.vm
+  ]
 }

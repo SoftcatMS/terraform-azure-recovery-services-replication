@@ -25,24 +25,25 @@ module "vnet" {
 }
 
 module "asr" {
-    source                          = "github.com/SoftcatMS/terraform-azure-site-recovery"
-    location_primary                = "uksouth"
-    location_secondary              = "westeurope"
-    asr_cache_resource_group_name   = azurerm_resource_group.rg-vm-test-basic.name
-    resource_group_name_secondary   = "rg-ukw-asr-test-basic"
-    asr_vault_name                  = "ukw-asr-vault-test-basic"
-    asr_fabric_primary_name         = "primary-fabric-basic"
-    asr_fabric_secondary_name       = "secondary-fabric-basic"
-    existing_vnet_id_primary        = module.vnet.vnet_id
-    existing_subnet_id              = module.vnet.vnet_subnets[0]
-    
-    tags = {
-      environment = "test"
-      engineer    = "ci/cd"
+  source                        = "../../"
+  location_primary              = "uksouth"
+  location_secondary            = "westeurope"
+  asr_cache_resource_group_name = azurerm_resource_group.rg-vm-test-basic.name
+  resource_group_name_secondary = "rg-ukw-asr-test-basic"
+  asr_vault_name                = "ukw-asr-vault-test-basic"
+  asr_fabric_primary_name       = "primary-fabric-basic"
+  asr_fabric_secondary_name     = "secondary-fabric-basic"
+  public_network_access_enabled = false
+  existing_vnet_id_primary      = module.vnet.vnet_id
+  existing_subnet_id            = module.vnet.vnet_subnets[0]
+
+  tags = {
+    environment = "test"
+    engineer    = "ci/cd"
   }
 
-    depends_on = [
-      azurerm_resource_group.rg-vm-test-basic,
-      module.vnet
-      ]
+  depends_on = [
+    azurerm_resource_group.rg-vm-test-basic,
+    module.vnet
+  ]
 }
